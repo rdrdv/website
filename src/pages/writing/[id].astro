@@ -1,0 +1,137 @@
+---
+/**
+ * A single blog post.
+ *
+ * The square brackets in the file name make this a "dynamic route": Astro
+ * builds one page per post, using the post's file name as the address.
+ * src/content/writing/hello-world.md becomes /writing/hello-world/
+ */
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { formatDate, getPosts } from '../../lib/posts';
+
+// Tells Astro which pages to build: one for each post.
+export async function getStaticPaths() {
+	const posts = await getPosts();
+	return posts.map((post) => ({ params: { id: post.id }, props: { post } }));
+}
+
+const { post } = Astro.props;
+
+// Converts the Markdown body into a component that can be placed on the page.
+const { Content } = await render(post);
+---
+
+<Base title={post.data.title} description={post.data.description}>
+	<main class="page">
+		<article>
+			<header class="page-header">
+				<h1>{post.data.title}</h1>
+				<p>
+					<time datetime={post.data.date.toISOString()}>{formatDate(post.data.date)}</time>
+					{post.data.draft && <span class="badge">Draft</span>}
+				</p>
+			</header>
+
+			<div class="prose">
+				<Content />
+			</div>
+		</article>
+
+		<p class="back"><a href="/writing/">← All writing</a></p>
+	</main>
+</Base>
+
+<style>
+	.back {
+		margin-top: 3rem;
+		font-size: 0.9rem;
+	}
+
+	/*
+	 * Styles for the post body. The body is generated from Markdown, so its
+	 * elements are not part of this file; :global() lets these rules reach them.
+	 */
+	.prose {
+		color: #b4b4b4; /* slightly brighter than --muted, for long-form reading */
+		line-height: 1.75;
+	}
+
+	.prose :global(* + *) {
+		margin-top: 1.25em;
+	}
+
+	.prose :global(h2) {
+		margin-top: 2.25em;
+		font-size: 1.3rem;
+	}
+
+	.prose :global(h3) {
+		margin-top: 2em;
+		font-size: 1.1rem;
+	}
+
+	.prose :global(a) {
+		text-decoration: underline;
+	}
+
+	.prose :global(strong) {
+		font-weight: 600;
+	}
+
+	.prose :global(ul),
+	.prose :global(ol) {
+		padding-left: 1.25rem;
+	}
+
+	.prose :global(li + li) {
+		margin-top: 0.4em;
+	}
+
+	.prose :global(blockquote) {
+		margin-left: 0;
+		margin-right: 0;
+		padding-left: 1rem;
+		border-left: 2px solid var(--border);
+		color: var(--muted);
+	}
+
+	.prose :global(img) {
+		border-radius: 0.75rem;
+	}
+
+	.prose :global(hr) {
+		border: 0;
+		border-top: 1px solid var(--border);
+		margin: 2.5em 0;
+	}
+
+	.prose :global(code) {
+		padding: 0.15em 0.35em;
+		border-radius: 0.35rem;
+		background: var(--surface);
+		font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+		font-size: 0.88em;
+	}
+
+	.prose :global(pre) {
+		padding: 1rem 1.25rem;
+		border: 1px solid var(--border);
+		border-radius: 0.75rem;
+		overflow-x: auto;
+		font-size: 0.88rem;
+		line-height: 1.6;
+	}
+
+	/* Inside a code block the wrapper already has padding and a background. */
+	.prose :global(pre code) {
+		padding: 0;
+		background: none;
+		font-size: inherit;
+	}
+
+	/* Lines inside a code block must not inherit the paragraph spacing above. */
+	.prose :global(pre *) {
+		margin-top: 0;
+	}
+</style>

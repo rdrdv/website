@@ -1,0 +1,57 @@
+---
+/**
+ * The shell shared by every page: the <head> tags, the global styles,
+ * the fonts and the floating menu. A page wraps its content in <Base>
+ * and that content appears where <slot /> is.
+ */
+import '@fontsource-variable/inter'; // Self-hosted Inter, so no request goes to Google Fonts.
+import '../styles/global.css';
+import Menu from '../components/Menu.astro';
+import { site } from '../site';
+
+interface Props {
+	/** Page title. Left out on the home page, which shows only the site name. */
+	title?: string;
+	/** Description for search results and link previews. Defaults to the site description. */
+	description?: string;
+}
+
+const { title, description = site.description } = Astro.props;
+
+// "Writing · Rudra Dave" on inner pages, "Rudra Dave" on the home page.
+const fullTitle = title ? `${title} · ${site.name}` : site.name;
+
+// The absolute address of this page, e.g. https://rdrdv.com/writing/
+const canonical = new URL(Astro.url.pathname, Astro.site);
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>{fullTitle}</title>
+		<meta name="description" content={description} />
+		<link rel="canonical" href={canonical} />
+
+		<link rel="icon" href="/favicon.ico" sizes="32x32" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+		<meta name="theme-color" content="#161616" />
+
+		<!-- Used by messaging apps and social networks when the link is shared. -->
+		<meta property="og:type" content="website" />
+		<meta property="og:site_name" content={site.name} />
+		<meta property="og:title" content={fullTitle} />
+		<meta property="og:description" content={description} />
+		<meta property="og:url" content={canonical} />
+
+		<!-- Lets feed readers discover the blog's RSS feed. -->
+		<link rel="alternate" type="application/rss+xml" title={site.name} href="/rss.xml" />
+		<link rel="sitemap" href="/sitemap-index.xml" />
+	</head>
+	<body>
+		<slot />
+		<Menu />
+	</body>
+</html>

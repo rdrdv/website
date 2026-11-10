@@ -1,0 +1,63 @@
+# rdrdv.com
+
+Personal website of Rudra Dave, built with [Astro](https://astro.build). Astro turns the files in this folder into plain HTML and CSS, so the published site is fast and needs no server.
+
+## Commands
+
+Run these in Terminal from this folder.
+
+| Command           | What it does                                                        |
+| :---------------- | :------------------------------------------------------------------ |
+| `npm run dev`     | Starts a live preview at `http://localhost:4321`. Drafts are shown. |
+| `npm run build`   | Builds the published site into `dist/`. Drafts are left out.        |
+| `npm run preview` | Serves the built `dist/` folder, to check it before publishing.     |
+
+## Everyday edits
+
+| To change                 | Edit                                                             |
+| :------------------------ | :--------------------------------------------------------------- |
+| Name, social links, menu  | `src/site.ts`                                                    |
+| Home page bio             | `src/pages/index.astro`                                          |
+| Portrait on the home page | Add `src/assets/portrait.jpg` (png, webp and avif also work)     |
+| Blog posts                | Add a `.md` file to `src/content/writing`                        |
+| Photographs               | Drop image files into `src/assets/photos`                        |
+| Music                     | `src/data/music.ts`                                              |
+| Colours, fonts, spacing   | `src/styles/global.css`                                          |
+
+### Writing a post
+
+Create `src/content/writing/my-post.md`. It is published at `/writing/my-post/`.
+
+```md
+---
+title: My post
+description: Optional one-line summary.
+date: 2026-11-10
+draft: false
+---
+
+The post, written in Markdown.
+```
+
+Set `draft: true` to keep a post out of the published site while you work on it.
+
+### Adding photographs
+
+Drop JPG, PNG, WebP or AVIF files into `src/assets/photos`. They are sorted by file name with the last name first, so names that start with a date (`2026-11-10-marine-drive.jpg`) put the newest photo at the top. The rest of the file name becomes the photo's description for screen readers.
+
+Export photos at about 3000 px on the long edge. Astro creates the smaller versions visitors download, and originals larger than that only make the project folder heavier.
+
+## Structure
+
+```text
+public/              Files copied to the site as they are (icons)
+src/
+  assets/            Images that Astro optimises (portrait, photos)
+  components/        Reusable pieces (the menu)
+  content/writing/   Blog posts in Markdown
+  data/music.ts      The list on the Music page
+  layouts/Base.astro The shell shared by every page
+  pages/             One file per page; the file path is the address
+  styles/global.css  Colours, typography and shared styles
+  site.ts            Name, links and menu entries
+```

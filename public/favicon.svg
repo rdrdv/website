@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+	<!-- Dark rounded square with a lower-case "r" drawn as a stem and an arc. -->
+	<rect width="64" height="64" rx="14" fill="#161616" />
+	<path
+		d="M25 21v23M25 33c0-7.5 5-12 13.5-12"
+		fill="none"
+		stroke="#ededed"
+		stroke-width="6"
+		stroke-linecap="round"
+	/>
+</svg>

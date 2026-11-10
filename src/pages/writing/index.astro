@@ -1,0 +1,50 @@
+---
+/** Writing: the list of all blog posts, newest first. */
+import Base from '../../layouts/Base.astro';
+import { formatDate, getPosts } from '../../lib/posts';
+
+const posts = await getPosts();
+---
+
+<Base title="Writing" description="Posts and notes.">
+	<main class="page">
+		<header class="page-header">
+			<h1>Writing</h1>
+		</header>
+
+		{
+			posts.length === 0 ? (
+				<p class="empty">Nothing published yet.</p>
+			) : (
+				<ul class="list">
+					{posts.map((post) => (
+						<li>
+							<a class="row" href={`/writing/${post.id}/`}>
+								<span class="row-title">
+									{post.data.title}
+									{post.data.draft && <span class="badge">Draft</span>}
+								</span>
+								<time class="row-meta" datetime={post.data.date.toISOString()}>
+									{formatDate(post.data.date)}
+								</time>
+							</a>
+						</li>
+					))}
+				</ul>
+			)
+		}
+	</main>
+</Base>
+
+<style>
+	/* The whole row is the link, so only the title is underlined on hover. */
+	.row:hover {
+		text-decoration: none;
+	}
+
+	.row:hover .row-title {
+		text-decoration: underline;
+		text-underline-offset: 0.2em;
+		text-decoration-thickness: 1px;
+	}
+</style>

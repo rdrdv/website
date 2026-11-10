@@ -1,0 +1,40 @@
+---
+/** Music: the list defined in src/data/music.ts. Edit that file to change it. */
+import Base from '../layouts/Base.astro';
+import { music } from '../data/music';
+---
+
+<Base title="Music" description="What I am listening to.">
+	<main class="page">
+		<header class="page-header">
+			<h1>Music</h1>
+		</header>
+
+		{
+			music.length === 0 ? (
+				<p class="empty">Nothing here yet.</p>
+			) : (
+				<ul class="list">
+					{music.map((entry) => (
+						<li>
+							<div class="row">
+								<span>
+									{/* The title is a link only when the entry has a url. */}
+									{entry.url ? (
+										<a class="row-title" href={entry.url} rel="noopener" target="_blank">
+											{entry.title}
+										</a>
+									) : (
+										<span class="row-title">{entry.title}</span>
+									)}
+									{entry.note && <span class="row-note">{entry.note}</span>}
+								</span>
+								<span class="row-meta">{entry.artist}</span>
+							</div>
+						</li>
+					))}
+				</ul>
+			)
+		}
+	</main>
+</Base>
