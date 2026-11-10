@@ -1,0 +1,12 @@
+# Albums shown on the Music page.
+#
+# Paste one album link per line, from Apple Music or Spotify:
+#   Apple Music:  open the album, then Share > Copy Link
+#   Spotify:      open the album, then Share > Copy Album Link
+#
+# The site fetches the title, artist and cover from the link, and a click on
+# the album opens that link. Albums appear in the order written here, so put
+# the ones you want first at the top. Delete a line to remove an album.
+#
+# Lines starting with # (like these) are ignored.
+

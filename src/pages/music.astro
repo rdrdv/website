@@ -1,40 +1,79 @@
 ---
-/** Music: the list defined in src/data/music.ts. Edit that file to change it. */
+/**
+ * Music: a grid of albums.
+ *
+ * To add an album, paste its Apple Music or Spotify link on a new line in
+ * src/data/albums.txt. Nothing else to edit: the title, artist and cover are
+ * fetched from the link (by integrations/albums.mjs) and stored in
+ * src/data/albums.json and src/assets/albums/.
+ *
+ * Astro resizes and compresses each cover at build time, so visitors
+ * download a version sized for their screen.
+ */
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
 import Base from '../layouts/Base.astro';
-import { music } from '../data/music';
+import saved from '../data/albums.json';
 import { sections } from '../site';
 
 // If this section is switched off in src/site.ts, answer "not found" instead of building the page.
 if (!sections.music.enabled) return new Response(null, { status: 404 });
+
+/** One entry of albums.json. */
+interface Album {
+	key: string; // also the cover's file name, e.g. "apple-617154241"
+	title: string;
+	artist: string; // empty if the service did not report one
+	url: string; // where a click goes
+	service: string; // "Apple Music" or "Spotify"
+}
+
+// Loads every cover in the folder, keyed by its path.
+const covers = import.meta.glob<{ default: ImageMetadata }>('../assets/albums/*.jpg', {
+	eager: true,
+});
+
+// Pairs each album with its cover. An album whose cover file is missing is left out.
+const albums = (saved as Album[]).flatMap((album) => {
+	const cover = covers[`../assets/albums/${album.key}.jpg`]?.default;
+	return cover ? [{ ...album, cover }] : [];
+});
 ---
 
-<Base title="Music" description="What I am listening to.">
+<Base title="Music" description="Albums I like.">
 	<main class="page">
 		<header class="page-header">
 			<h1>Music</h1>
 		</header>
 
 		{
-			music.length === 0 ? (
-				<p class="empty">Nothing here yet.</p>
+			albums.length === 0 ? (
+				<p class="empty">No albums yet.</p>
 			) : (
-				<ul class="list">
-					{music.map((entry) => (
+				<ul class="albums">
+					{albums.map((album) => (
 						<li>
-							<div class="row">
-								<span>
-									{/* The title is a link only when the entry has a url. */}
-									{entry.url ? (
-										<a class="row-title" href={entry.url} rel="noopener" target="_blank">
-											{entry.title}
-										</a>
-									) : (
-										<span class="row-title">{entry.title}</span>
-									)}
-									{entry.note && <span class="row-note">{entry.note}</span>}
-								</span>
-								<span class="row-meta">{entry.artist}</span>
-							</div>
+							<a
+								class="album"
+								href={album.url}
+								rel="noopener"
+								target="_blank"
+								title={`Open in ${album.service}`}
+							>
+								{/*
+									alt is empty because the title is written right below, inside
+									the same link; describing the cover too would make screen
+									readers say the album name twice.
+								*/}
+								<Image
+									src={album.cover}
+									alt=""
+									widths={[200, 400, 600]}
+									sizes="(min-width: 40rem) 12rem, (min-width: 32rem) 30vw, 45vw"
+								/>
+								<span class="album-title">{album.title}</span>
+								{album.artist && <span class="album-artist">{album.artist}</span>}
+							</a>
 						</li>
 					))}
 				</ul>
@@ -42,3 +81,65 @@ if (!sections.music.enabled) return new Response(null, { status: 404 });
 		}
 	</main>
 </Base>
+
+<style>
+	/* Three equal columns; minmax(0, 1fr) stops a long title from stretching its column. */
+	.albums {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 2rem 1.25rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.album {
+		display: block;
+	}
+
+	/* The whole card is the link, so the usual underline on hover is replaced by dimming the cover. */
+	.album:hover {
+		text-decoration: none;
+	}
+
+	/* :global() is needed because the img element is produced by <Image>, not by this file. */
+	.album :global(img) {
+		width: 100%;
+		aspect-ratio: 1;
+		object-fit: cover;
+		border-radius: 0.5rem;
+		background: var(--surface);
+		/* A hairline edge, so a white cover does not dissolve into the light background. */
+		box-shadow: 0 0 0 1px var(--border);
+		transition: opacity 0.2s ease;
+	}
+
+	.album:hover :global(img) {
+		opacity: 0.85;
+	}
+
+	.album-title,
+	.album-artist {
+		display: block;
+		line-height: 1.35;
+	}
+
+	.album-title {
+		margin-top: 0.75rem;
+		color: var(--text);
+		font-size: 0.95rem;
+	}
+
+	.album-artist {
+		margin-top: 0.15rem;
+		color: var(--muted);
+		font-size: 0.9rem;
+	}
+
+	/* Phones: two columns, so the covers stay large enough to recognise. */
+	@media (max-width: 32rem) {
+		.albums {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+	}
+</style>

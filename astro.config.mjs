@@ -2,6 +2,7 @@
 import { rm } from 'node:fs/promises';
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
+import albums from './integrations/albums.mjs';
 import { sections } from './src/site.ts';
 
 /**
@@ -49,6 +50,9 @@ export default defineConfig({
 		// every page. Switched-off sections are left out of it.
 		sitemap({ filter: (page) => !isDisabled(page) }),
 		removeDisabledSections,
+		// Fetches the title, artist and cover of each album linked in
+		// src/data/albums.txt, for the Music page.
+		albums(),
 	],
 
 	markdown: {

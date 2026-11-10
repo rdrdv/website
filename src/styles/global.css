@@ -186,7 +186,7 @@ img {
 	color: var(--muted);
 }
 
-/* ---------- Lists (posts and music) ---------- */
+/* ---------- Lists (posts) ---------- */
 
 .list {
 	list-style: none;
@@ -219,12 +219,6 @@ img {
 	flex-shrink: 0;
 	font-size: 0.9rem;
 	font-variant-numeric: tabular-nums;
-}
-
-.row-note {
-	display: block;
-	color: var(--muted);
-	font-size: 0.9rem;
 }
 
 .badge {

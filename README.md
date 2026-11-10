@@ -22,7 +22,7 @@ Run these in Terminal from this folder.
 | Portrait on the home page | Add `src/assets/portrait.jpg` (png, webp and avif also work)     |
 | Blog posts                | Add a `.md` file to `src/content/writing`                        |
 | Photographs               | Drop image files into `src/assets/photos`                        |
-| Music                     | `src/data/music.ts`                                              |
+| Albums on the Music page  | Paste album links into `src/data/albums.txt`                     |
 | Colours, fonts, spacing   | `src/styles/global.css`                                          |
 
 ### Switching a section off
@@ -62,15 +62,24 @@ Drop JPG, PNG, WebP or AVIF files into `src/assets/photos`. They are sorted by f
 
 Export photos at about 3000 px on the long edge. Astro creates the smaller versions visitors download, and originals larger than that only make the project folder heavier.
 
+### Adding albums
+
+Open `src/data/albums.txt` and paste one album link per line, from Apple Music (Share > Copy Link) or Spotify (Share > Copy Album Link). The site fetches the title, artist and cover from the link, and a click on the album opens that link. Albums appear in the order of the lines; delete a line to remove an album.
+
+The fetch happens when `npm run dev` or `npm run build` starts, and again each time `albums.txt` is saved while the preview is running. The results are stored in `src/data/albums.json` and `src/assets/albums/`, so each album is fetched only once. Both are written by the site: do not edit them by hand, but do keep them in the project.
+
+A link that cannot be fetched is named in the Terminal window and left off the page until it works.
+
 ## Structure
 
 ```text
+integrations/        Build steps (the album fetcher)
 public/              Files copied to the site as they are (icons)
 src/
-  assets/            Images that Astro optimises (portrait, photos)
+  assets/            Images that Astro optimises (portrait, photos, album covers)
   components/        Reusable pieces (the menu)
   content/writing/   Blog posts in Markdown
-  data/music.ts      The list on the Music page
+  data/albums.txt    The album links for the Music page
   layouts/Base.astro The shell shared by every page
   pages/             One file per page; the file path is the address
   styles/global.css  Colours, typography and shared styles
