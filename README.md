@@ -16,13 +16,28 @@ Run these in Terminal from this folder.
 
 | To change                 | Edit                                                             |
 | :------------------------ | :--------------------------------------------------------------- |
-| Name, social links, menu  | `src/site.ts`                                                    |
+| Name, social links        | `src/site.ts`                                                    |
+| Switch a section on/off   | `src/site.ts`, the `enabled: true` / `false` value in `sections` |
 | Home page bio             | `src/pages/index.astro`                                          |
 | Portrait on the home page | Add `src/assets/portrait.jpg` (png, webp and avif also work)     |
 | Blog posts                | Add a `.md` file to `src/content/writing`                        |
 | Photographs               | Drop image files into `src/assets/photos`                        |
 | Music                     | `src/data/music.ts`                                              |
 | Colours, fonts, spacing   | `src/styles/global.css`                                          |
+
+### Switching a section off
+
+In `src/site.ts`, change a section's `enabled` from `true` to `false`:
+
+```ts
+photography: { label: 'Photography', href: '/photography/', enabled: false },
+```
+
+The section leaves the menu and the home page, and its page is not published. Its files stay where they are, so changing the value back to `true` restores it.
+
+### Light and dark mode
+
+The site follows the appearance set on the visitor's device. Both colour sets are at the top of `src/styles/global.css`: the first `:root` block holds the light colours, and the `@media (prefers-color-scheme: dark)` block under it holds the dark ones. When you change a colour, change it in both blocks.
 
 ### Writing a post
 

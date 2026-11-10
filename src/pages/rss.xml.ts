@@ -1,13 +1,16 @@
 import rss from '@astrojs/rss';
 import type { APIContext } from 'astro';
 import { getPosts } from '../lib/posts';
-import { site } from '../site';
+import { sections, site } from '../site';
 
 /**
  * Builds /rss.xml, a machine-readable list of posts.
  * Feed readers check this file to show subscribers your new posts.
  */
 export async function GET(context: APIContext) {
+	// No feed while the Writing section is switched off in src/site.ts.
+	if (!sections.writing.enabled) return new Response(null, { status: 404 });
+
 	const posts = await getPosts();
 
 	return rss({

@@ -9,9 +9,12 @@
 import { render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import { formatDate, getPosts } from '../../lib/posts';
+import { sections } from '../../site';
 
-// Tells Astro which pages to build: one for each post.
+// Tells Astro which pages to build: one for each post,
+// or none at all if Writing is switched off in src/site.ts.
 export async function getStaticPaths() {
+	if (!sections.writing.enabled) return [];
 	const posts = await getPosts();
 	return posts.map((post) => ({ params: { id: post.id }, props: { post } }));
 }
@@ -53,7 +56,7 @@ const { Content } = await render(post);
 	 * elements are not part of this file; :global() lets these rules reach them.
 	 */
 	.prose {
-		color: #b4b4b4; /* slightly brighter than --muted, for long-form reading */
+		color: var(--prose); /* stronger than --muted, for long-form reading */
 		line-height: 1.75;
 	}
 

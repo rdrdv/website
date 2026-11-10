@@ -4,18 +4,60 @@
  * here and it updates everywhere.
  */
 
+/*
+ * Light mode colours. These are the defaults, used when the visitor's device
+ * is set to light appearance (or does not say).
+ */
 :root {
-	--bg: #161616; /* page background */
-	--surface: #1f1f1f; /* menu panel and buttons */
-	--surface-hover: #272727;
-	--border: rgb(255 255 255 / 0.09);
-	--text: #ededed; /* headings, links, emphasised words */
-	--muted: #909090; /* body copy */
+	--bg: #fafafa; /* page background */
+	--surface: #ffffff; /* menu panel and buttons */
+	--surface-hover: #f0f0f0;
+	--border: rgb(0 0 0 / 0.1);
+	--text: #171717; /* headings, links, emphasised words */
+	--muted: #6b6b6b; /* body copy */
+	--prose: #3f3f3f; /* blog post text: stronger than --muted, for long reading */
+	--selection: rgb(0 0 0 / 0.12); /* highlighted text */
+	--shadow: 0 16px 48px rgb(0 0 0 / 0.12); /* under the menu panel */
+
+	/* Sizes, the same in both modes. */
 	--radius: 1.25rem;
 	--edge: 1.5rem; /* distance of the menu from the screen edge */
 
-	/* Tells the browser the site is dark, so scrollbars and form controls match. */
-	color-scheme: dark;
+	/* Tells the browser the site supports both modes, so scrollbars and form controls match. */
+	color-scheme: light dark;
+}
+
+/*
+ * Dark mode colours. `prefers-color-scheme` reports the appearance set on the
+ * visitor's device, so the site follows it automatically and switches live
+ * if the device changes (for example at sunset with automatic appearance).
+ */
+@media (prefers-color-scheme: dark) {
+	:root {
+		--bg: #161616;
+		--surface: #1f1f1f;
+		--surface-hover: #272727;
+		--border: rgb(255 255 255 / 0.09);
+		--text: #ededed;
+		--muted: #909090;
+		--prose: #b4b4b4;
+		--selection: rgb(255 255 255 / 0.18);
+		--shadow: 0 16px 48px rgb(0 0 0 / 0.5);
+	}
+
+	/*
+	 * Code blocks in posts carry two sets of colours: light ones applied
+	 * directly, and dark ones stored in --shiki-dark variables. This switches
+	 * them to the dark set.
+	 */
+	.astro-code,
+	.astro-code span {
+		color: var(--shiki-dark) !important;
+		background-color: var(--shiki-dark-bg) !important;
+		font-style: var(--shiki-dark-font-style) !important;
+		font-weight: var(--shiki-dark-font-weight) !important;
+		text-decoration: var(--shiki-dark-text-decoration) !important;
+	}
 }
 
 *,
@@ -33,6 +75,13 @@ html {
 	-webkit-font-smoothing: antialiased;
 	-webkit-text-size-adjust: 100%;
 	text-rendering: optimizeLegibility;
+
+	/*
+	 * Always reserves room for the scrollbar. Without this, a long page (which
+	 * has a scrollbar) is slightly narrower than a short one, and everything
+	 * shifts sideways when moving between them.
+	 */
+	scrollbar-gutter: stable;
 }
 
 body {
@@ -94,11 +143,15 @@ img {
 }
 
 ::selection {
-	background: rgb(255 255 255 / 0.18);
+	background: var(--selection);
 }
 
 /* ---------- Inner pages (Writing, Photography, Music) ---------- */
 
+/*
+ * The reading column. Every inner page puts its title in this column, so the
+ * title sits in exactly the same place on Writing, Photography and Music.
+ */
 .page {
 	max-width: 40rem;
 	margin: 0 auto;
@@ -106,8 +159,19 @@ img {
 	padding: 6rem 1.5rem 8rem;
 }
 
-.page.wide {
+/* A column that is followed by a wide block gives up its bottom padding to it. */
+.page.has-wide {
+	padding-bottom: 0;
+}
+
+/*
+ * A wider block placed under the reading column (the photo grid). It is
+ * centred on the same axis, so it extends equally to both sides of the title.
+ */
+.wide {
 	max-width: 72rem;
+	margin: 0 auto;
+	padding: 0 1.5rem 8rem;
 }
 
 .page-header {

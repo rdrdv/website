@@ -1,6 +1,6 @@
 /**
  * Site-wide settings. Edit this file to change your name, the description
- * search engines show, your social links and the entries in the menu.
+ * search engines show, your social links, and which sections are switched on.
  */
 
 export const site = {
@@ -22,14 +22,28 @@ export const site = {
 };
 
 /**
- * Menu entries. Each inner array is one group; groups are separated by a
- * thin line in the menu. To add a page, create it in src/pages and add it here.
+ * The sections of the site, in the order they appear in the menu.
+ *
+ * To switch a section off, change its `enabled` from true to false.
+ * A section that is off:
+ *   - disappears from the menu and from the home page
+ *   - is not published (its address shows the "Page not found" page)
+ *   - keeps all its files, so changing false back to true restores it
  */
-export const nav = [
-	[{ label: 'Home', href: '/' }],
-	[
-		{ label: 'Writing', href: '/writing/' },
-		{ label: 'Photography', href: '/photography/' },
-		{ label: 'Music', href: '/music/' },
-	],
-];
+export const sections = {
+	writing: { label: 'Writing', href: '/writing/', enabled: true },
+	photography: { label: 'Photography', href: '/photography/', enabled: true },
+	music: { label: 'Music', href: '/music/', enabled: true },
+};
+
+/** Only the sections that are switched on. */
+export const enabledSections = Object.values(sections).filter((section) => section.enabled);
+
+/**
+ * Menu entries, built from the list above. Each inner array is one group;
+ * groups are separated by a thin line in the menu. A group with nothing in
+ * it (every section switched off) is left out.
+ */
+export const nav = [[{ label: 'Home', href: '/' }], enabledSections].filter(
+	(group) => group.length > 0,
+);

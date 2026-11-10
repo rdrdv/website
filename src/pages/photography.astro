@@ -15,6 +15,10 @@
 import { Image } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
 import Base from '../layouts/Base.astro';
+import { sections } from '../site';
+
+// If this section is switched off in src/site.ts, answer "not found" instead of building the page.
+if (!sections.photography.enabled) return new Response(null, { status: 404 });
 
 // Loads every image in the folder. Camera exports often use upper-case extensions.
 const files = import.meta.glob<{ default: ImageMetadata }>(
@@ -43,32 +47,40 @@ const photos = Object.entries(files)
 ---
 
 <Base title="Photography" description="Photographs.">
-	<main class="page wide">
-		<header class="page-header">
-			<h1>Photography</h1>
-		</header>
+	<main>
+		{/*
+			The title sits in the same narrow column as on Writing and Music, so it
+			does not move when switching pages. The photo grid below is wider.
+		*/}
+		<div class="page has-wide">
+			<header class="page-header">
+				<h1>Photography</h1>
+			</header>
+
+			{photos.length === 0 && <p class="empty">No photographs yet.</p>}
+		</div>
 
 		{
-			photos.length === 0 ? (
-				<p class="empty">No photographs yet.</p>
-			) : (
-				<div class="grid">
-					{/* The thumbnails. Clicking one opens the full-screen view with the same id. */}
-					{photos.map((photo) => (
-						<button
-							class="thumb"
-							type="button"
-							popovertarget={photo.id}
-							aria-label={`View larger: ${photo.alt}`}
-						>
-							<Image
-								src={photo.src}
-								alt={photo.alt}
-								widths={[480, 800, 1200]}
-								sizes="(min-width: 60rem) 33vw, (min-width: 36rem) 50vw, 100vw"
-							/>
-						</button>
-					))}
+			photos.length > 0 && (
+				<div class="wide">
+					<div class="grid">
+						{/* The thumbnails. Clicking one opens the full-screen view with the same id. */}
+						{photos.map((photo) => (
+							<button
+								class="thumb"
+								type="button"
+								popovertarget={photo.id}
+								aria-label={`View larger: ${photo.alt}`}
+							>
+								<Image
+									src={photo.src}
+									alt={photo.alt}
+									widths={[480, 800, 1200]}
+									sizes="(min-width: 60rem) 33vw, (min-width: 36rem) 50vw, 100vw"
+								/>
+							</button>
+						))}
+					</div>
 				</div>
 			)
 		}
@@ -135,7 +147,11 @@ const photos = Object.entries(files)
 		opacity: 0.85;
 	}
 
-	/* The full-screen view. `display` is left alone so a closed popover stays hidden. */
+	/*
+	 * The full-screen view. It stays dark in light mode too, because photos
+	 * read best against a dark surround. `display` is left alone so a closed
+	 * popover stays hidden.
+	 */
 	.lightbox {
 		inset: 0;
 		width: 100vw;

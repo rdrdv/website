@@ -7,7 +7,7 @@
 import '@fontsource-variable/inter'; // Self-hosted Inter, so no request goes to Google Fonts.
 import '../styles/global.css';
 import Menu from '../components/Menu.astro';
-import { site } from '../site';
+import { sections, site } from '../site';
 
 interface Props {
 	/** Page title. Left out on the home page, which shows only the site name. */
@@ -37,7 +37,9 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
 		<link rel="icon" href="/favicon.ico" sizes="32x32" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-		<meta name="theme-color" content="#161616" />
+		<!-- Colours the browser's own toolbar to match the page, in each mode. -->
+		<meta name="theme-color" content="#fafafa" media="(prefers-color-scheme: light)" />
+		<meta name="theme-color" content="#161616" media="(prefers-color-scheme: dark)" />
 
 		<!-- Used by messaging apps and social networks when the link is shared. -->
 		<meta property="og:type" content="website" />
@@ -46,8 +48,12 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
 		<meta property="og:description" content={description} />
 		<meta property="og:url" content={canonical} />
 
-		<!-- Lets feed readers discover the blog's RSS feed. -->
-		<link rel="alternate" type="application/rss+xml" title={site.name} href="/rss.xml" />
+		<!-- Lets feed readers discover the blog's RSS feed (only while Writing is switched on). -->
+		{
+			sections.writing.enabled && (
+				<link rel="alternate" type="application/rss+xml" title={site.name} href="/rss.xml" />
+			)
+		}
 		<link rel="sitemap" href="/sitemap-index.xml" />
 	</head>
 	<body>

@@ -2,6 +2,10 @@
 /** Writing: the list of all blog posts, newest first. */
 import Base from '../../layouts/Base.astro';
 import { formatDate, getPosts } from '../../lib/posts';
+import { sections } from '../../site';
+
+// If this section is switched off in src/site.ts, answer "not found" instead of building the page.
+if (!sections.writing.enabled) return new Response(null, { status: 404 });
 
 const posts = await getPosts();
 ---

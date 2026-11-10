@@ -2,6 +2,10 @@
 /** Music: the list defined in src/data/music.ts. Edit that file to change it. */
 import Base from '../layouts/Base.astro';
 import { music } from '../data/music';
+import { sections } from '../site';
+
+// If this section is switched off in src/site.ts, answer "not found" instead of building the page.
+if (!sections.music.enabled) return new Response(null, { status: 404 });
 ---
 
 <Base title="Music" description="What I am listening to.">
