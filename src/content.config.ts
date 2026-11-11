@@ -17,8 +17,10 @@ const writing = defineCollection({
 		title: z.string(),
 		/** Optional one-line summary, used for search results and the RSS feed. */
 		description: z.string().optional(),
-		/** Publication date, written as YYYY-MM-DD. */
-		date: z.coerce.date(),
+		/** Publication date, written as YYYY-MM-DD. Leave it out to show no date. */
+		date: z.coerce.date().optional(),
+		/** Pinned posts stay at the top of the Writing list, above every other post. */
+		pinned: z.boolean().default(false),
 		/** Drafts show up while developing but are left out of the published site. */
 		draft: z.boolean().default(false),
 	}),

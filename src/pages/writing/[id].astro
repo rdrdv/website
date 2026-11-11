@@ -30,10 +30,15 @@ const { Content } = await render(post);
 		<article>
 			<header class="page-header">
 				<h1>{post.data.title}</h1>
-				<p>
-					<time datetime={post.data.date.toISOString()}>{formatDate(post.data.date)}</time>
-					{post.data.draft && <span class="badge">Draft</span>}
-				</p>
+				{/* The line under the title is left out when there is nothing to put on it. */}
+				{(post.data.date || post.data.draft) && (
+					<p>
+						{post.data.date && (
+							<time datetime={post.data.date.toISOString()}>{formatDate(post.data.date)}</time>
+						)}
+						{post.data.draft && <span class="badge">Draft</span>}
+					</p>
+				)}
 			</header>
 
 			<div class="prose">

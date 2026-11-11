@@ -1,5 +1,5 @@
 ---
-/** Writing: the list of all blog posts, newest first. */
+/** Writing: the list of all blog posts. Pinned posts first, then newest first. */
 import Base from '../../layouts/Base.astro';
 import { formatDate, getPosts } from '../../lib/posts';
 import { sections } from '../../site';
@@ -28,9 +28,12 @@ const posts = await getPosts();
 									{post.data.title}
 									{post.data.draft && <span class="badge">Draft</span>}
 								</span>
-								<time class="row-meta" datetime={post.data.date.toISOString()}>
-									{formatDate(post.data.date)}
-								</time>
+								{/* Posts without a date simply show no date. */}
+								{post.data.date && (
+									<time class="row-meta" datetime={post.data.date.toISOString()}>
+										{formatDate(post.data.date)}
+									</time>
+								)}
 							</a>
 						</li>
 					))}
