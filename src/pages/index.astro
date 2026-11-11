@@ -111,6 +111,15 @@ const portrait = Object.values(portraits)[0]?.default;
 		margin-bottom: 1.25rem;
 	}
 
+	/*
+	 * Justified text: the browser widens the spaces between words so that
+	 * every full line reaches both edges of the column, giving the bio straight
+	 * left and right sides. The last line of a paragraph is not stretched.
+	 */
+	.bio p {
+		text-align: justify;
+	}
+
 	.bio p + p {
 		margin-top: 1rem;
 	}
@@ -146,6 +155,20 @@ const portrait = Object.values(portraits)[0]?.default;
 		.portrait {
 			width: 9rem;
 			height: 9rem;
+		}
+	}
+
+	/*
+	 * On phones a line holds only a few words, so stretching it can leave wide
+	 * gaps. Letting the browser split a long word with a hyphen at the end of a
+	 * line keeps the gaps small. It uses the page's language (lang="en" in
+	 * Base.astro) to know where a word may be split. The -webkit- line is the
+	 * same setting under the name older versions of Safari use.
+	 */
+	@media (max-width: 32rem) {
+		.bio p {
+			-webkit-hyphens: auto;
+			hyphens: auto;
 		}
 	}
 </style>
