@@ -9,7 +9,7 @@
 import { Image } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
 import Base from '../layouts/Base.astro';
-import { enabledSections, site } from '../site';
+import { site } from '../site';
 
 // Looks for a portrait file. The result is empty if you have not added one.
 const portraits = import.meta.glob<{ default: ImageMetadata }>(
@@ -17,9 +17,6 @@ const portraits = import.meta.glob<{ default: ImageMetadata }>(
 	{ eager: true },
 );
 const portrait = Object.values(portraits)[0]?.default;
-
-// Only links that have an address are shown.
-const links = site.links.filter((link) => link.href);
 ---
 
 <Base>
@@ -40,60 +37,42 @@ const links = site.links.filter((link) => link.href);
 			}
 
 			<div class="bio">
-				<h1>{site.name}</h1>
+					{/*
+						The page's heading. It is not shown on screen, because the first
+						line below already introduces you, but search engines and screen
+						readers still use it as the title of the page.
+					*/}
+					<h1 class="hidden-heading">{site.name}</h1>
 
-				<!--
-					Your bio. Wrap a word in <strong> to make it brighter,
-					or in <a href="..."> to make it a link.
+					{/*
+						Your bio: one <p>...</p> per paragraph. Wrap a word in <strong> to
+						make it brighter, or in <a href="..."> to make it a link.
 
-					Keep each tag on the same line as the word before it. Astro removes
-					a line break that sits directly next to a tag, which would join two
-					words together. Breaking a line between plain words is fine.
-				-->
-				<p>
-					I'm an MBA student at <strong>IIM Nagpur</strong> with a background
-					in <strong>computer science</strong>.
-				</p>
-				<p>
-					Previously, I built dashboards and internal tools in Python
-					at <strong>BrainyBeam InfoTech</strong>.
-				</p>
+						Keep each tag on the same line as the word before it. Astro removes
+						a line break that sits directly next to a tag, which would join two
+						words together. Breaking a line between plain words is fine.
+					*/}
+					<p>
+						Hi, I’m Rudra. I was born in India and have lived in the United
+						Kingdom.
+					</p>
+					<p>
+						Engineer by training, now debugging businesses. Currently an MBA
+						student at IIM Nagpur, applying a systems mindset to strategy and
+						operations. I build things that make work more human.
+					</p>
 
-				{
-					/*
-					 * This sentence is built from the sections switched on in src/site.ts,
-					 * so it never links to a section that is off. With all three on it
-					 * reads "...my writing, photography and music." Delete this whole
-					 * block if you would rather write the sentence by hand.
-					 */
-					enabledSections.length > 0 && (
-						<p>
-							This site is where I keep my{' '}
-							{enabledSections.map((section, index) => (
-								<>
-									{/* The separator before each item: nothing, a comma, or "and" before the last. */}
-									{index > 0 && (index === enabledSections.length - 1 ? ' and ' : ', ')}
-									<a href={section.href}>{section.label.toLowerCase()}</a>
-								</>
-							))}.
-						</p>
-					)
-				}
-
-				{
-					links.length > 0 && (
-						<ul class="links">
-							{links.map((link) => (
-								<li>
-									<a href={link.href} rel="me noopener" target="_blank">
-										{link.label}
-									</a>
-								</li>
-							))}
-						</ul>
-					)
-				}
-			</div>
+					{/*
+						The three links. Their addresses are set in src/site.ts, under `contact`.
+						  hello:  "mailto:" makes the visitor's mail app open a new message.
+						  code and tweets: target="_blank" opens the page in a new tab, and
+						  rel="me" tells search engines those profiles belong to you.
+						The sentence is kept on one line so no spaces are lost (see the note above).
+					*/}
+					<p>
+						Say <a href={`mailto:${site.contact.email}`}>hello</a>, fork my <a href={site.contact.github} rel="me noopener" target="_blank">code</a>, or share my <a href={site.contact.twitter} rel="me noopener" target="_blank">tweets</a>.
+					</p>
+				</div>
 		</div>
 	</main>
 </Base>
@@ -126,21 +105,27 @@ const links = site.links.filter((link) => link.href);
 		max-width: 31rem;
 	}
 
-	.bio h1 {
-		margin-bottom: 1.25rem;
+	/*
+	 * Hides the heading from view while leaving it readable by search engines
+	 * and screen readers: it is shrunk to a single clipped pixel instead of
+	 * being removed with display: none, which would hide it from them too.
+	 */
+	.hidden-heading {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
 	}
 
 	.bio p + p {
 		margin-top: 1rem;
 	}
 
-	.links {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 1.25rem;
-		margin: 1.5rem 0 0;
-		padding: 0;
-		list-style: none;
+	/* Links inside a sentence are always underlined, so they stand out from the words around them. */
+	.bio a {
+		text-decoration: underline;
 	}
 
 	/* On narrow screens the portrait sits above the text. */

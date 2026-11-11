@@ -16,7 +16,7 @@ Run these in Terminal from this folder.
 
 | To change                 | Edit                                                             |
 | :------------------------ | :--------------------------------------------------------------- |
-| Name, social links        | `src/site.ts`                                                    |
+| Name and contact links    | `src/site.ts`                                                    |
 | Switch a section on/off   | `src/site.ts`, the `enabled: true` / `false` value in `sections` |
 | Home page bio             | `src/pages/index.astro`                                          |
 | Portrait on the home page | Add `src/assets/portrait.jpg` (png, webp and avif also work)     |
@@ -83,5 +83,5 @@ src/
   layouts/Base.astro The shell shared by every page
   pages/             One file per page; the file path is the address
   styles/global.css  Colours, typography and shared styles
-  site.ts            Name, links and menu entries
+  site.ts            Name, contact links and section switches
 ```

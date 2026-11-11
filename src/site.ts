@@ -1,24 +1,27 @@
 /**
  * Site-wide settings. Edit this file to change your name, the description
- * search engines show, your social links, and which sections are switched on.
+ * search engines show, your contact links, and which sections are switched on.
  */
 
 export const site = {
-	/** Shown as the home page heading and in every browser tab title. */
+	/** Your full name: the title search engines show, and part of every browser tab title. */
 	name: 'Rudra Dave',
 
 	/** Default description for search results and link previews. */
 	description: 'Personal website of Rudra Dave: writing, photography and music.',
 
 	/**
-	 * Links shown under the bio on the home page.
-	 * An entry with an empty `href` is skipped, so fill in the ones you want.
+	 * Where the three links in the last line of the home page go:
+	 * "Say hello, fork my code, or share my tweets."
 	 */
-	links: [
-		{ label: 'X', href: '' },
-		{ label: 'LinkedIn', href: '' },
-		{ label: 'GitHub', href: 'https://github.com/rdrdv' },
-	],
+	contact: {
+		/** "hello" opens a new email addressed to this. */
+		email: 'hello@rdrdv.com',
+		/** "code" opens this page. */
+		github: 'https://github.com/rdrdv',
+		/** "tweets" opens this page. */
+		twitter: 'https://x.com/rdrdv',
+	},
 };
 
 /**
@@ -32,7 +35,7 @@ export const site = {
  */
 export const sections = {
 	writing: { label: 'Writing', href: '/writing/', enabled: true },
-	photography: { label: 'Photography', href: '/photography/', enabled: true },
+	photography: { label: 'Photography', href: '/photography/', enabled: false },
 	music: { label: 'Music', href: '/music/', enabled: true },
 };
 

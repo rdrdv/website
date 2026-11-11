@@ -1,12 +1,23 @@
 # Albums shown on the Music page.
 #
-# Paste one album link per line, from Apple Music or Spotify:
-#   Apple Music:  open the album, then Share > Copy Link
-#   Spotify:      open the album, then Share > Copy Album Link
+# HOW TO ADD AN ALBUM
+#   1. Copy the album's link:
+#        Apple Music:  open the album, click the ... button, Share > Copy Link
+#        Spotify:      open the album, click the ... button, Share > Copy Album Link
+#   2. Paste it on a new line of its own at the bottom of this file
+#      (under "YOUR ALBUMS"), with nothing else on that line.
+#   3. Save the file.
 #
 # The site fetches the title, artist and cover from the link, and a click on
 # the album opens that link. Albums appear in the order written here, so put
 # the ones you want first at the top. Delete a line to remove an album.
 #
-# Lines starting with # (like these) are ignored.
+# Lines starting with # (like these) are notes and are ignored.
+#
+# A Spotify link looks like this (remove the # to use it):
+# https://open.spotify.com/album/4LH4d3cOWNNsVw41Gqt2kv
+#
+# YOUR ALBUMS
+# The line below is an example. Replace it with your own, one link per line.
 
+https://music.apple.com/in/album/random-access-memories/617154241
