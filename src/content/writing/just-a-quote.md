@@ -1,5 +1,5 @@
 ---
-title: "There is surely nothing quite so useless as doing with great efficiency what should not be done at all."
+title: "I am human, nothing that is human is alien to me."
 date: 2026-11-11
 ---
 
