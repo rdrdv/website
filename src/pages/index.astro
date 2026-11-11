@@ -37,42 +37,44 @@ const portrait = Object.values(portraits)[0]?.default;
 			}
 
 			<div class="bio">
-					{/*
-						The page's heading. It is not shown on screen, because the first
-						line below already introduces you, but search engines and screen
-						readers still use it as the title of the page.
-					*/}
-					<h1 class="hidden-heading">{site.name}</h1>
+				{/*
+					The heading is the greeting itself, so the page opens with it in
+					large type and the paragraphs below do not have to repeat it.
+					Your full name is still the title of the browser tab and of the
+					page in search results (it comes from src/site.ts).
+				*/}
+				<h1>Hi, I’m Rudra.</h1>
 
-					{/*
-						Your bio: one <p>...</p> per paragraph. Wrap a word in <strong> to
-						make it brighter, or in <a href="..."> to make it a link.
+				{/*
+					Your bio: one <p>...</p> per paragraph. Wrap a word in <strong> to
+					make it brighter, or in <a href="..."> to make it a link.
 
-						Keep each tag on the same line as the word before it. Astro removes
-						a line break that sits directly next to a tag, which would join two
-						words together. Breaking a line between plain words is fine.
-					*/}
-					<p>
-						Hi, I’m Rudra. I was born in India and have lived in the United
-						Kingdom.
-					</p>
-					<p>
-						Engineer by training, now debugging businesses. Currently an MBA
-						student at IIM Nagpur, applying a systems mindset to strategy and
-						operations. I build things that make work more human.
-					</p>
+					Keep each tag on the same line as the word before it. Astro removes
+					a line break that sits directly next to a tag, which would join two
+					words together. Breaking a line between plain words is fine.
+				*/}
+				<p>
+					I was born in <strong>India</strong> and have lived in
+					the <strong>United Kingdom</strong>.
+				</p>
+				<p>
+					Engineer by training, now <strong>debugging businesses</strong>. Currently
+					an MBA student at <strong>IIM Nagpur</strong>, applying a systems mindset
+					to strategy and operations. I build things that make work more human.
+				</p>
 
-					{/*
-						The three links. Their addresses are set in src/site.ts, under `contact`.
-						  hello:  "mailto:" makes the visitor's mail app open a new message.
-						  code and tweets: target="_blank" opens the page in a new tab, and
-						  rel="me" tells search engines those profiles belong to you.
-						The sentence is kept on one line so no spaces are lost (see the note above).
-					*/}
-					<p>
-						Say <a href={`mailto:${site.contact.email}`}>hello</a>, fork my <a href={site.contact.github} rel="me noopener" target="_blank">code</a>, or share my <a href={site.contact.twitter} rel="me noopener" target="_blank">tweets</a>.
-					</p>
-				</div>
+				{/*
+					The closing line, set a little apart from the bio. Its three links
+					get their addresses from src/site.ts, under `contact`.
+					  hello:  "mailto:" makes the visitor's mail app open a new message.
+					  code and tweets: target="_blank" opens the page in a new tab, and
+					  rel="me" tells search engines those profiles belong to you.
+					The sentence is kept on one line so no spaces are lost (see the note above).
+				*/}
+				<p class="contact">
+					Say <a href={`mailto:${site.contact.email}`}>hello</a>, fork my <a href={site.contact.github} rel="me noopener" target="_blank">code</a>, or share my <a href={site.contact.twitter} rel="me noopener" target="_blank">tweets</a>.
+				</p>
+			</div>
 		</div>
 	</main>
 </Base>
@@ -105,27 +107,33 @@ const portrait = Object.values(portraits)[0]?.default;
 		max-width: 31rem;
 	}
 
-	/*
-	 * Hides the heading from view while leaving it readable by search engines
-	 * and screen readers: it is shrunk to a single clipped pixel instead of
-	 * being removed with display: none, which would hide it from them too.
-	 */
-	.hidden-heading {
-		position: absolute;
-		width: 1px;
-		height: 1px;
-		overflow: hidden;
-		clip-path: inset(50%);
-		white-space: nowrap;
+	.bio h1 {
+		margin-bottom: 1.25rem;
 	}
 
 	.bio p + p {
 		margin-top: 1rem;
 	}
 
-	/* Links inside a sentence are always underlined, so they stand out from the words around them. */
+	/* The closing line sits a little further down, like a sign-off. */
+	.bio .contact {
+		margin-top: 1.5rem;
+	}
+
+	/*
+	 * Links are bright like the emphasised words, plus a faint underline so
+	 * they can be told apart from them. color-mix() makes the line a
+	 * see-through version of the text colour (currentColor), so it suits
+	 * both light and dark mode. On hover the line becomes fully solid.
+	 */
 	.bio a {
 		text-decoration: underline;
+		text-decoration-color: color-mix(in srgb, currentColor 30%, transparent);
+		transition: text-decoration-color 0.2s ease;
+	}
+
+	.bio a:hover {
+		text-decoration-color: currentColor;
 	}
 
 	/* On narrow screens the portrait sits above the text. */
