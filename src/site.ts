@@ -25,11 +25,12 @@ export const site = {
 };
 
 /**
- * The sections of the site, in the order they appear in the menu.
+ * The sections of the site, in the order a visitor scrolls through them
+ * after the home page. Move a line up or down to change that order.
  *
  * To switch a section off, change its `enabled` from true to false.
  * A section that is off:
- *   - disappears from the menu and from the home page
+ *   - is skipped when scrolling from page to page
  *   - is not published (its address shows the "Page not found" page)
  *   - keeps all its files, so changing false back to true restores it
  */
@@ -43,10 +44,7 @@ export const sections = {
 export const enabledSections = Object.values(sections).filter((section) => section.enabled);
 
 /**
- * Menu entries, built from the list above. Each inner array is one group;
- * groups are separated by a thin line in the menu. A group with nothing in
- * it (every section switched off) is left out.
+ * The pages a visitor moves through by scrolling, from top to bottom:
+ * the home page first, then each section that is switched on.
  */
-export const nav = [[{ label: 'Home', href: '/' }], enabledSections].filter(
-	(group) => group.length > 0,
-);
+export const pageOrder = [{ label: 'Home', href: '/' }, ...enabledSections];

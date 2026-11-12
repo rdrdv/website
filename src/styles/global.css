@@ -10,18 +10,15 @@
  */
 :root {
 	--bg: #fafafa; /* page background */
-	--surface: #ffffff; /* menu panel and buttons */
-	--surface-hover: #f0f0f0;
+	--surface: #ffffff; /* behind album covers and inline code */
 	--border: rgb(0 0 0 / 0.1);
 	--text: #171717; /* headings, links, emphasised words */
 	--muted: #6b6b6b; /* body copy */
 	--prose: #3f3f3f; /* blog post text: stronger than --muted, for long reading */
 	--selection: rgb(0 0 0 / 0.12); /* highlighted text */
-	--shadow: 0 16px 48px rgb(0 0 0 / 0.12); /* under the menu panel */
 
 	/* Sizes, the same in both modes. */
 	--radius: 1.25rem;
-	--edge: 1.5rem; /* distance of the menu from the screen edge */
 
 	/* Tells the browser the site supports both modes, so scrollbars and form controls match. */
 	color-scheme: light dark;
@@ -36,13 +33,11 @@
 	:root {
 		--bg: #111111;
 		--surface: #1f1f1f;
-		--surface-hover: #272727;
 		--border: rgb(255 255 255 / 0.09);
 		--text: #ededed;
 		--muted: #909090;
 		--prose: #b4b4b4;
 		--selection: rgb(255 255 255 / 0.18);
-		--shadow: 0 16px 48px rgb(0 0 0 / 0.5);
 	}
 
 	/*
@@ -82,16 +77,95 @@ html {
 	 * shifts sideways when moving between them.
 	 */
 	scrollbar-gutter: stable;
+
+	/*
+	 * Switches off the elastic bounce at the top and bottom of the page.
+	 * Scrolling past an edge moves to the next page instead (see
+	 * src/components/ScrollNav.astro), and the bounce would fight that slide.
+	 */
+	overscroll-behavior-y: none;
 }
 
 body {
+	/* Lets the chevrons be placed against the top and bottom of the page. */
+	position: relative;
 	margin: 0;
 	min-height: 100dvh;
 }
 
-/* Fades between pages in browsers that support cross-document view transitions. */
+/* ---------- Moving between pages ---------- */
+
+/*
+ * Animates the change from one page to the next, in browsers that support
+ * "cross-document view transitions". The browser takes a picture of the old
+ * page and of the new one, and animates between the two. With nothing else
+ * said, it fades one into the other.
+ */
 @view-transition {
 	navigation: auto;
+}
+
+/*
+ * When the two pages are above and below each other in the scroll order, the
+ * script in src/layouts/Base.astro labels the change "forward" or "back", and
+ * the pictures slide instead of fading, as if the pages were one long sheet.
+ *   ::view-transition-old(root) is the picture of the page being left
+ *   ::view-transition-new(root) is the picture of the page arriving
+ *
+ * The curve starts quickly, so the page answers the scroll at once, and
+ * settles gently. `mix-blend-mode: normal` undoes a setting the browser
+ * applies for fading, which would otherwise brighten the overlap.
+ */
+html:active-view-transition-type(forward)::view-transition-old(root),
+html:active-view-transition-type(forward)::view-transition-new(root),
+html:active-view-transition-type(back)::view-transition-old(root),
+html:active-view-transition-type(back)::view-transition-new(root) {
+	animation-duration: 0.6s;
+	animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+	animation-fill-mode: both;
+	mix-blend-mode: normal;
+}
+
+/* Forward: the old page leaves through the top, the new one rises from below. */
+html:active-view-transition-type(forward)::view-transition-old(root) {
+	animation-name: leave-to-top;
+}
+
+html:active-view-transition-type(forward)::view-transition-new(root) {
+	animation-name: enter-from-bottom;
+}
+
+/* Back: the reverse. */
+html:active-view-transition-type(back)::view-transition-old(root) {
+	animation-name: leave-to-bottom;
+}
+
+html:active-view-transition-type(back)::view-transition-new(root) {
+	animation-name: enter-from-top;
+}
+
+@keyframes leave-to-top {
+	to {
+		transform: translateY(-100%);
+	}
+}
+
+@keyframes enter-from-bottom {
+	from {
+		transform: translateY(100%);
+	}
+}
+
+@keyframes leave-to-bottom {
+	to {
+		transform: translateY(100%);
+	}
+}
+
+@keyframes enter-from-top {
+	from {
+		transform: translateY(-100%);
+	}
 }
 
 h1,
@@ -155,7 +229,7 @@ img {
 .page {
 	max-width: 40rem;
 	margin: 0 auto;
-	/* The large bottom padding keeps content clear of the floating Menu button. */
+	/* The large bottom padding leaves room for the chevron at the foot of the page. */
 	padding: 6rem 1.5rem 8rem;
 }
 

@@ -18,6 +18,7 @@ Run these in Terminal from this folder.
 | :------------------------ | :--------------------------------------------------------------- |
 | Name and contact links    | `src/site.ts`                                                    |
 | Switch a section on/off   | `src/site.ts`, the `enabled: true` / `false` value in `sections` |
+| Order of the pages        | `src/site.ts`, the order of the lines in `sections`              |
 | Home page bio             | `src/pages/index.astro`                                          |
 | Portrait on the home page | Add `src/assets/portrait.jpg` (png, webp and avif also work)     |
 | Blog posts                | Add a `.md` file to `src/content/writing`                        |
@@ -33,7 +34,13 @@ In `src/site.ts`, change a section's `enabled` from `true` to `false`:
 photography: { label: 'Photography', href: '/photography/', enabled: false },
 ```
 
-The section leaves the menu and the home page, and its page is not published. Its files stay where they are, so changing the value back to `true` restores it.
+The section is skipped when scrolling from page to page, and its page is not published. Its files stay where they are, so changing the value back to `true` restores it.
+
+### Moving between pages
+
+There is no menu. The pages are stacked in a fixed order: Home, then each section in the order of `sections` in `src/site.ts`. Scrolling, swiping or pressing an arrow key past the bottom of a page opens the next one, and past the top opens the previous one. The small chevron at the top or bottom of a page is a link to that neighbour. A blog post has one chevron, at the top, leading back to Writing.
+
+The gestures and the chevrons are in `src/components/ScrollNav.astro`; the slide between pages is in `src/styles/global.css`.
 
 ### Light and dark mode
 
@@ -77,7 +84,7 @@ integrations/        Build steps (the album fetcher)
 public/              Files copied to the site as they are (icons)
 src/
   assets/            Images that Astro optimises (portrait, photos, album covers)
-  components/        Reusable pieces (the menu)
+  components/        Reusable pieces (the scroll navigation)
   content/writing/   Blog posts in Markdown
   data/albums.txt    The album links for the Music page
   layouts/Base.astro The shell shared by every page

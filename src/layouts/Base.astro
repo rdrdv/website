@@ -1,13 +1,13 @@
 ---
 /**
  * The shell shared by every page: the <head> tags, the global styles,
- * the fonts and the floating menu. A page wraps its content in <Base>
+ * the fonts and the scroll navigation. A page wraps its content in <Base>
  * and that content appears where <slot /> is.
  */
 import '@fontsource-variable/inter'; // Self-hosted Inter, so no request goes to Google Fonts.
 import '../styles/global.css';
-import Menu from '../components/Menu.astro';
-import { sections, site } from '../site';
+import ScrollNav from '../components/ScrollNav.astro';
+import { pageOrder, sections, site } from '../site';
 
 interface Props {
 	/** Page title. Left out on the home page, which shows only the site name. */
@@ -23,10 +23,32 @@ const fullTitle = title ? `${title} · ${site.name}` : site.name;
 
 // The absolute address of this page, e.g. https://rdrdv.com/writing/
 const canonical = new URL(Astro.url.pathname, Astro.site);
+
+/*
+ * Where this page sits in the order visitors scroll through.
+ * `here` is its position in pageOrder (0 = Home), or -1 if it is not one of
+ * those pages. `parent` is the section a deeper page belongs to: for a blog
+ * post, that is Writing.
+ */
+const path = Astro.url.pathname.replace(/\/?$/, '/'); // always ends in a slash
+const here = pageOrder.findIndex((page) => page.href === path);
+const parent =
+	here === -1 ? pageOrder.findIndex((page) => page.href !== '/' && path.startsWith(page.href)) : -1;
+
+// The pages above and below. A blog post has only "above": the list of posts.
+const previous = here > 0 ? pageOrder[here - 1] : parent !== -1 ? pageOrder[parent] : undefined;
+const next = here !== -1 ? pageOrder[here + 1] : undefined;
+
+/*
+ * A number that grows down the stack: Home 0, Writing 1, a post 1.5, Music 2.
+ * The script in <head> compares it with the previous page's number to tell
+ * which way to slide. Pages outside the stack ("Page not found") have none.
+ */
+const order = here !== -1 ? here : parent !== -1 ? parent + 0.5 : undefined;
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" data-order={order}>
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -54,10 +76,39 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
 				<link rel="alternate" type="application/rss+xml" title={site.name} href="/rss.xml" />
 			)
 		}
-		<link rel="sitemap" href="/sitemap-index.xml" />
-	</head>
-	<body>
-		<slot />
-		<Menu />
-	</body>
+			<link rel="sitemap" href="/sitemap-index.xml" />
+
+			{/*
+				Chooses the direction of the slide between two pages.
+
+				The browser fires "pagereveal" just before it first draws a page. If it
+				is about to animate from the previous page, the event carries that
+				animation as `viewTransition`. This compares the two pages' positions in
+				the stack and labels the animation "forward" (the new page is lower) or
+				"back" (it is higher); global.css holds the slide for each label.
+
+				The previous page's position is kept in sessionStorage, a small store
+				that lasts as long as the browser tab. Because it is updated on every
+				page, the Back and Forward buttons slide the right way too.
+
+				`is:inline` keeps the script here, exactly as written. Astro would
+				otherwise load it later, after the first draw, which is too late.
+			*/}
+			<script is:inline>
+				window.addEventListener('pagereveal', (event) => {
+					const here = Number(document.documentElement.dataset.order ?? NaN);
+					let from = NaN;
+					try {
+						from = Number(sessionStorage.getItem('page-order') ?? NaN);
+						sessionStorage.setItem('page-order', String(here));
+					} catch {}
+					if (!event.viewTransition?.types || Number.isNaN(here) || Number.isNaN(from)) return;
+					if (here !== from) event.viewTransition.types.add(here > from ? 'forward' : 'back');
+				});
+			</script>
+		</head>
+		<body>
+			<slot />
+			<ScrollNav previous={previous} next={next} />
+		</body>
 </html>

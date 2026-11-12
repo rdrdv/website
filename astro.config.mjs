@@ -45,6 +45,11 @@ export default defineConfig({
 	// for the RSS feed, the sitemap and the canonical link on every page.
 	site: 'https://rdrdv.com',
 
+	// Lets a link ask for its page to be downloaded ahead of time, by carrying
+	// the attribute `data-astro-prefetch`. The chevrons use it, so the page
+	// above and the page below are ready before the visitor scrolls to them.
+	prefetch: true,
+
 	integrations: [
 		// Generates sitemap-index.xml at build time so search engines can find
 		// every page. Switched-off sections are left out of it.

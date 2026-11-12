@@ -1,0 +1,315 @@
+---
+/**
+ * Moving between pages by scrolling.
+ *
+ * The pages are stacked in a fixed order (see `pageOrder` in src/site.ts).
+ * Scrolling past the bottom of a page opens the one below it, and scrolling
+ * past the top opens the one above it. A small chevron at the top or bottom
+ * of the page shows that there is a page in that direction.
+ *
+ * Each chevron is an ordinary link, so it can be clicked, reached with the
+ * Tab key, and still works if JavaScript is switched off. The script at the
+ * end of this file adds the scroll, swipe and arrow-key gestures on top.
+ */
+interface Page {
+	label: string;
+	href: string;
+}
+
+interface Props {
+	/** The page above this one, if there is one. */
+	previous?: Page;
+	/** The page below this one, if there is one. */
+	next?: Page;
+}
+
+const { previous, next } = Astro.props;
+
+/** The two possible chevrons; `filter` drops a direction that has no page. */
+const links = [
+	{ direction: 'up', page: previous },
+	{ direction: 'down', page: next },
+].filter((link) => link.page);
+---
+
+{
+	links.map(({ direction, page }) => (
+		/*
+			`title` is the tooltip shown on hover, `aria-label` is what a screen
+			reader says. `data-astro-prefetch="load"` downloads the linked page in
+			the background as soon as this one has loaded, so the move starts
+			without waiting for the network.
+		*/
+		<a
+			class:list={['scroll-nav', direction]}
+			href={page!.href}
+			title={page!.label}
+			aria-label={`Go to ${page!.label}`}
+			data-scroll={direction}
+			data-astro-prefetch="load"
+		>
+			{/* One chevron drawing, pointing down. The "up" link turns it over in CSS. */}
+			<svg viewBox="0 0 14 8" width="14" height="8" aria-hidden="true">
+				<path d="M1 1.25 7 6.75l6-5.5" />
+			</svg>
+		</a>
+	))
+}
+
+<style>
+	/*
+	 * The link is a 44px square, the smallest size that is comfortable to tap,
+	 * but only the 14px chevron in its centre is drawn.
+	 *
+	 * `position: absolute` places it against the top or bottom of the whole
+	 * page rather than of the screen. On a long page the bottom chevron
+	 * therefore comes into view only once the visitor reaches the end, which
+	 * is exactly when scrolling further will change the page.
+	 */
+	.scroll-nav {
+		position: absolute;
+		left: 50%;
+		translate: -50% 0;
+		display: grid;
+		place-items: center;
+		width: 2.75rem;
+		height: 2.75rem;
+		color: var(--muted);
+		opacity: 0.55;
+		transition:
+			opacity 0.2s ease,
+			color 0.2s ease;
+	}
+
+	.scroll-nav:hover,
+	.scroll-nav:focus-visible {
+		color: var(--text);
+		opacity: 1;
+	}
+
+	.scroll-nav.up {
+		top: 0.5rem;
+	}
+
+	.scroll-nav.down {
+		bottom: 0.5rem;
+	}
+
+	.scroll-nav svg {
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 1.25;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+
+	.scroll-nav.up svg {
+		rotate: 180deg;
+	}
+</style>
+
+<script>
+	/** Wheel or trackpad: how far, in pixels, to scroll past the edge before the page changes. */
+	const WHEEL_DISTANCE = 50;
+
+	/** Touch screens: how far, in pixels, to drag past the edge before the page changes. */
+	const TOUCH_DISTANCE = 64;
+
+	/** A pause this long (in milliseconds) between two wheel events means a new scroll gesture has begun. */
+	const GESTURE_GAP = 150;
+
+	/** Small pushes at the edge add up, as long as they come within this many milliseconds of each other. */
+	const PUSH_MEMORY = 1000;
+
+	/** After arriving by scrolling, the wheel is ignored for this long: about the length of the slide. */
+	const ARRIVAL_LOCK = 600;
+
+	/** How close to the edge, in pixels, counts as being at the edge. */
+	const EDGE = 2;
+
+	/** Name of the note left for the next page, saying the visitor got there by scrolling. */
+	const ARRIVED_BY_WHEEL = 'arrived-by-wheel';
+
+	/** The address a chevron points to, or undefined if the page has no chevron in that direction. */
+	const target = (direction: 'up' | 'down') =>
+		document.querySelector<HTMLAnchorElement>(`a[data-scroll="${direction}"]`)?.href;
+
+	const previous = target('up');
+	const next = target('down');
+
+	const atTop = () => window.scrollY <= EDGE;
+	const atBottom = () =>
+		window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - EDGE;
+
+	/** True once a move to another page has started, so one gesture cannot start two. */
+	let leaving = false;
+
+	function go(url: string | undefined, byWheel = false) {
+		if (!url || leaving) return;
+		leaving = true;
+		if (byWheel) {
+			// sessionStorage can be unavailable (some private modes); the move still works without the note.
+			try {
+				sessionStorage.setItem(ARRIVED_BY_WHEEL, '1');
+			} catch {}
+		}
+		location.assign(url);
+	}
+
+	/* ---------- Mouse wheel and trackpad ---------- */
+
+	let lastWheel = -Infinity; // when the previous wheel event arrived
+	let armed = false; // true if the current gesture began with the page already at the edge
+	let gestureDirection = 0; // 1 = scrolling down, -1 = scrolling up
+	let pushed = 0; // how far the visitor has pushed past the edge (negative = upwards)
+	let settling = false; // true while the tail of the gesture that brought the visitor here dies down
+
+	/**
+	 * Registers the wheel listener. A "passive" listener promises not to block
+	 * scrolling, which lets the browser scroll without waiting for this script.
+	 * It is non-passive only while settling, when it does need to block.
+	 */
+	function listenToWheel(passive: boolean) {
+		window.removeEventListener('wheel', onWheel);
+		window.addEventListener('wheel', onWheel, { passive });
+	}
+
+	function onWheel(event: WheelEvent) {
+		// A pinch-zoom arrives as a wheel event with ctrlKey set, and a sideways
+		// swipe is the browser's back/forward gesture. Neither is a page scroll.
+		if (event.ctrlKey || Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
+
+		const direction = Math.sign(event.deltaY);
+		if (direction === 0) return;
+
+		const now = performance.now();
+		const sinceLast = now - lastWheel;
+		lastWheel = Math.max(lastWheel, now);
+
+		if (sinceLast > GESTURE_GAP) {
+			// A new gesture. It may change the page only if it starts with the page
+			// already at the edge it pushes against. So a long scroll that happens
+			// to reach the end of a page stops there; it takes a second, deliberate
+			// scroll to move on.
+			if (settling) {
+				settling = false;
+				listenToWheel(true);
+			}
+			armed = direction > 0 ? atBottom() : atTop();
+			gestureDirection = direction;
+			if (!armed || sinceLast > PUSH_MEMORY || Math.sign(pushed) !== direction) pushed = 0;
+		} else if (settling) {
+			// A trackpad keeps sending wheel events for about a second after the
+			// fingers lift (momentum). These belong to the gesture that opened this
+			// page, so they must neither scroll it nor carry on to the next one.
+			if (event.cancelable) event.preventDefault();
+			return;
+		}
+
+		if (!armed) return;
+
+		// Turning back in the middle of a gesture cancels it.
+		if (direction !== gestureDirection) {
+			armed = false;
+			pushed = 0;
+			return;
+		}
+
+		// Some browsers report mouse-wheel movement in lines or pages instead of pixels.
+		const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? window.innerHeight : 1;
+		pushed += event.deltaY * unit;
+
+		if (Math.abs(pushed) >= WHEEL_DISTANCE) go(direction > 0 ? next : previous, true);
+	}
+
+	/* ---------- Touch screens ---------- */
+
+	/** Where the finger went down and which edges the page was at, or null when no single-finger drag is in progress. */
+	let touch: { x: number; y: number; top: boolean; bottom: boolean } | null = null;
+
+	function onTouchStart(event: TouchEvent) {
+		// Two fingers mean a pinch, and a zoomed-in page is being panned, not scrolled.
+		const zoomed = (window.visualViewport?.scale ?? 1) > 1.01;
+		if (event.touches.length !== 1 || zoomed) {
+			touch = null;
+			return;
+		}
+		const finger = event.touches[0];
+		touch = { x: finger.clientX, y: finger.clientY, top: atTop(), bottom: atBottom() };
+	}
+
+	function onTouchMove(event: TouchEvent) {
+		if (!touch || event.touches.length !== 1) return;
+		const finger = event.touches[0];
+		const dx = finger.clientX - touch.x;
+		const dy = finger.clientY - touch.y;
+		if (Math.abs(dx) > Math.abs(dy)) return; // a sideways drag
+
+		// Dragging the finger up moves the page down, and the other way round.
+		// As with the wheel, the drag must have started at the edge.
+		if (touch.bottom && dy <= -TOUCH_DISTANCE) go(next);
+		else if (touch.top && dy >= TOUCH_DISTANCE) go(previous);
+	}
+
+	function onTouchEnd() {
+		touch = null;
+	}
+
+	/* ---------- Keyboard ---------- */
+
+	function onKeyDown(event: KeyboardEvent) {
+		// `repeat` is true while a key is held down. Ignoring it means holding
+		// the arrow key to scroll to the end of a page stops there.
+		if (event.defaultPrevented || event.repeat) return;
+		if (event.metaKey || event.ctrlKey || event.altKey) return;
+		// Leave the keys alone while the visitor is typing or on a button.
+		if ((event.target as Element).closest?.('input, textarea, select, button, [contenteditable]')) {
+			return;
+		}
+
+		const space = event.key === ' ';
+		const down = event.key === 'ArrowDown' || event.key === 'PageDown' || (space && !event.shiftKey);
+		const up = event.key === 'ArrowUp' || event.key === 'PageUp' || (space && event.shiftKey);
+
+		if (down && atBottom()) go(next);
+		else if (up && atTop()) go(previous);
+	}
+
+	/* ---------- Start ---------- */
+
+	/** Puts everything back to its starting state when a page is shown. */
+	function arrive() {
+		leaving = false;
+		armed = false;
+		pushed = 0;
+		touch = null;
+
+		let byWheel = false;
+		try {
+			byWheel = sessionStorage.getItem(ARRIVED_BY_WHEEL) !== null;
+			sessionStorage.removeItem(ARRIVED_BY_WHEEL);
+		} catch {}
+
+		// Setting "the last wheel event" in the future makes every wheel event
+		// during the lock count as part of the gesture that is still dying down.
+		settling = byWheel;
+		lastWheel = byWheel ? performance.now() + ARRIVAL_LOCK : -Infinity;
+		listenToWheel(!byWheel);
+	}
+
+	// A page with no chevrons (the "Page not found" page) has nowhere to go.
+	if (previous || next) {
+		arrive();
+		window.addEventListener('touchstart', onTouchStart, { passive: true });
+		window.addEventListener('touchmove', onTouchMove, { passive: true });
+		window.addEventListener('touchend', onTouchEnd);
+		window.addEventListener('touchcancel', onTouchEnd);
+		window.addEventListener('keydown', onKeyDown);
+
+		// The Back button can bring this page back exactly as it was left, script
+		// state included (`persisted` is true then), so it has to be reset.
+		window.addEventListener('pageshow', (event) => {
+			if (event.persisted) arrive();
+		});
+	}
+</script>
