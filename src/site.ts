@@ -8,7 +8,7 @@ export const site = {
 	name: 'Rudra Dave',
 
 	/** Default description for search results and link previews. */
-	description: 'Personal website of Rudra Dave: writing, photography and music.',
+	description: 'Personal website of Rudra Dave.',
 
 	/**
 	 * Where the three links in the last line of the home page go:
